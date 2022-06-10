@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 
 @Configuration
 @EnableWebSecurity
@@ -15,6 +16,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private CustomIpAuthenticationProvider authenticationProvider;
+
+    @Bean
+    public Http403ForbiddenEntryPoint http403ForbiddenEntryPoint(){
+        return new Http403ForbiddenEntryPoint();
+    }
+
 
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()
@@ -27,12 +34,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/api/v1/hello/login").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic()
                 .and()
-                .csrf().disable();
+                .csrf().disable()
+                .exceptionHandling().authenticationEntryPoint(http403ForbiddenEntryPoint());
+        ;
     }
 
     @Bean
